@@ -57,6 +57,8 @@ let powerMode = false;
 let powerEndTime = 0;
 let powerTimer = null;
 let animationTick = 0;
+let currentPlayer = null;
+let gameStarted = false;
 
 window.onload = function() {
     board = document.getElementById("board");
@@ -66,6 +68,7 @@ window.onload = function() {
 
     document.getElementById("btn-restart").addEventListener("click", restartGame);
     document.getElementById("btn-home").addEventListener("click", goToHome);
+    document.getElementById("btn-start").addEventListener("click", startGame);
 
     loadImages();
     loadMap();
@@ -74,21 +77,121 @@ window.onload = function() {
         const newDirection = directions[Math.floor(Math.random() * 4)];
         ghost.updateDirection(newDirection);
     }
-    update();
     document.addEventListener("keydown", movePacman);
+    window.addEventListener("google-identity-loaded", initializeGoogleLogin);
+    window.addEventListener("google-identity-error", () => {
+        setLoginStatus("Não foi possível carregar o login do Google. Verifique sua conexão e recarregue a página.", true);
+    });
+    initializeGoogleLogin();
 }
 
 function goToHome() {
-    window.location.href = "./login.html";
+    gameStarted = false;
+    gameOver = true;
+    gameWon = false;
+    hideEndScreen();
+    document.getElementById("game-container").classList.add("hidden");
+    document.getElementById("login-screen").classList.remove("hidden");
+}
+
+function setLoginStatus(message, isError = false) {
+    const status = document.getElementById("login-status");
+    status.textContent = message;
+    status.classList.toggle("error", isError);
+}
+
+function initializeGoogleLogin() {
+    const clientId = window.PACMAN_GOOGLE_CLIENT_ID;
+    if (!clientId || clientId.includes("YOUR_GOOGLE_CLIENT_ID")) {
+        setLoginStatus("Configure o Client ID em google-auth-config.js para habilitar o login.", true);
+        return;
+    }
+
+    if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+        setLoginStatus("Não foi possível carregar o login do Google. Verifique sua conexão e recarregue a página.", true);
+        return;
+    }
+
+    window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleCredential,
+        auto_select: false,
+        cancel_on_tap_outside: true
+    });
+    window.google.accounts.id.renderButton(document.getElementById("google-button"), {
+        type: "standard",
+        theme: "filled_blue",
+        size: "large",
+        shape: "pill",
+        text: "signin_with",
+        locale: "pt-BR",
+        width: 280
+    });
+    setLoginStatus("Entre com sua conta Google para liberar a partida.");
+}
+
+function decodeGoogleCredential(credential) {
+    const parts = credential.split(".");
+    if (parts.length !== 3) {
+        throw new Error("A credencial recebida pelo Google está inválida.");
+    }
+
+    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const binary = window.atob(payload.padEnd(Math.ceil(payload.length / 4) * 4, "="));
+    const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+function handleGoogleCredential(response) {
+    try {
+        const profile = decodeGoogleCredential(response.credential);
+        if (!profile.name) {
+            throw new Error("O Google não retornou um nome para esta conta.");
+        }
+
+        currentPlayer = {
+            name: profile.name,
+            givenName: profile.given_name || profile.name.split(" ")[0],
+            email: profile.email || "",
+            picture: profile.picture || ""
+        };
+
+        const avatar = document.getElementById("user-avatar");
+        avatar.src = currentPlayer.picture || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%23282d49'/%3E%3Ccircle cx='24' cy='18' r='8' fill='%23c9c9ff'/%3E%3Cpath d='M8 44c1-9 7-14 16-14s15 5 16 14' fill='%23c9c9ff'/%3E%3C/svg%3E";
+        document.getElementById("user-name").textContent = currentPlayer.name;
+        document.getElementById("authenticated-panel").classList.remove("hidden");
+        document.getElementById("google-button").classList.add("hidden");
+        setLoginStatus("Login realizado. Sua partida está pronta.");
+        document.getElementById("btn-start").focus();
+    } catch (error) {
+        currentPlayer = null;
+        setLoginStatus(error.message || "Não foi possível concluir o login com o Google.", true);
+    }
+}
+
+function startGame() {
+    if (!currentPlayer) {
+        setLoginStatus("Faça login com o Google antes de jogar.", true);
+        return;
+    }
+
+    document.getElementById("login-screen").classList.add("hidden");
+    document.getElementById("game-container").classList.remove("hidden");
+    gameStarted = true;
+    restartGame();
 }
 
 function showEndScreen(won) {
     const endScreen = document.getElementById("end-screen");
     const endTitle = document.getElementById("end-title");
+    const endPlayer = document.getElementById("end-player");
     const endScore = document.getElementById("end-score");
 
-    endTitle.textContent = won ? "VOCÊ VENCEU!" : "GAME OVER";
+    endTitle.textContent = won ? "VOCÊ VENCEU!" : "FIM DE JOGO";
     endTitle.className = won ? "win" : "lose";
+    endPlayer.textContent = won
+        ? "Parabéns, " + (currentPlayer ? currentPlayer.name : "jogador") + "!"
+        : "Boa partida, " + (currentPlayer ? currentPlayer.name : "jogador") + ".";
     endScore.textContent = "Pontuação: " + String(score);
     endScreen.classList.remove("hidden");
 }
@@ -98,6 +201,10 @@ function hideEndScreen() {
 }
 
 function restartGame() {
+    if (!currentPlayer) {
+        goToHome();
+        return;
+    }
     if (powerTimer) clearTimeout(powerTimer);
     endPowerMode();
     hideEndScreen();
@@ -189,7 +296,7 @@ function loadMap() {
 }
 
 function update() {
-    if (gameOver || gameWon) {
+    if (!gameStarted || gameOver || gameWon) {
         return;
     }
     animationTick++;
@@ -575,7 +682,7 @@ function movePacman(e) {
         e.preventDefault();
     }
 
-    if (gameOver || gameWon) {
+    if (!gameStarted || gameOver || gameWon) {
         return;
     }
 

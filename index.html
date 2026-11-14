@@ -3,23 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PacMan</title>
+    <meta name="theme-color" content="#090b18">
+    <meta name="description" content="Entre com sua conta Google e jogue Pac-Man.">
+    <title>Pac-Man</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="game-container">
+    <main id="login-screen" aria-labelledby="login-title">
+        <section class="login-card">
+            <div class="brand-mark" aria-hidden="true"><span></span></div>
+            <p class="eyebrow">ARCADE CLÁSSICO · EDIÇÃO PESSOAL</p>
+            <h1 id="login-title">Pronto para<br><span>uma partida?</span></h1>
+            <p class="login-copy">Entre com sua conta Google para começar. Sua jornada e seu placar serão apresentados com seu nome.</p>
+            <div id="google-button" class="google-button-slot" aria-label="Entrar com Google"></div>
+            <p id="login-status" class="login-status" role="status" aria-live="polite">Conectando ao Google…</p>
+            <div id="authenticated-panel" class="authenticated-panel hidden">
+                <img id="user-avatar" class="user-avatar" alt="" referrerpolicy="no-referrer">
+                <div class="user-copy">
+                    <span>Você está conectado como</span>
+                    <strong id="user-name"></strong>
+                </div>
+                <button id="btn-start" class="start-button" type="button">Começar a jogar</button>
+            </div>
+            <p class="login-footnote">Use as setas ou WASD para mover o Pac-Man.</p>
+        </section>
+    </main>
+
+    <div id="game-container" class="hidden">
         <canvas id="board"></canvas>
-        <div id="end-screen" class="hidden">
+        <div id="end-screen" class="hidden" role="dialog" aria-modal="true" aria-labelledby="end-title">
             <div class="end-modal">
+                <div class="end-spark" aria-hidden="true">✦</div>
+                <p class="end-eyebrow">FIM DE JOGO</p>
                 <h1 id="end-title">GAME OVER</h1>
+                <p id="end-player"></p>
                 <p id="end-score">Pontuação: 0</p>
                 <div class="end-buttons">
-                    <button id="btn-restart" type="button">Jogar Novamente</button>
-                    <button id="btn-home" type="button">Tela Inicial</button>
+                    <button id="btn-restart" type="button">Jogar novamente</button>
+                    <button id="btn-home" type="button">Tela inicial</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <script src="google-auth-config.js"></script>
+    <script async defer src="https://accounts.google.com/gsi/client" onload="window.dispatchEvent(new Event('google-identity-loaded'))" onerror="window.dispatchEvent(new Event('google-identity-error'))"></script>
     <script src="script.js"></script>
 </body>
 </html>
