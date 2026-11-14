@@ -1,0 +1,129 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+
+body {
+    background-color: #000000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#game-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#board {
+    background-color: black;
+    max-width: 100%;
+    max-height: 100vh;
+    display: block;
+}
+
+#end-screen {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.82);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.35s ease-out forwards;
+}
+
+#end-screen.hidden {
+    display: none;
+}
+
+.end-modal {
+    background-color: #111122;
+    border: 3px solid #2121ff;
+    border-radius: 14px;
+    padding: 32px 28px;
+    text-align: center;
+    box-shadow: 0 0 25px rgba(33, 33, 255, 0.6);
+    animation: popIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    max-width: 90%;
+}
+
+#end-title {
+    font-size: 32px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+}
+
+#end-title.win {
+    color: #ffff00;
+    text-shadow: 0 0 12px rgba(255, 255, 0, 0.7);
+}
+
+#end-title.lose {
+    color: #ff2a2a;
+    text-shadow: 0 0 12px rgba(255, 42, 42, 0.7);
+}
+
+#end-score {
+    color: #ffffff;
+    font-size: 18px;
+    margin-bottom: 24px;
+}
+
+.end-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.end-buttons button {
+    padding: 10px 18px;
+    font-size: 15px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.end-buttons button:hover {
+    transform: scale(1.06);
+    filter: brightness(1.15);
+}
+
+#btn-restart {
+    background-color: #ffff00;
+    color: #000000;
+}
+
+#btn-home {
+    background-color: #2121ff;
+    color: #ffffff;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.7) translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
