@@ -3,4 +3,4 @@
  * Crie-o no Google Cloud Console e informe o Client ID abaixo.
  * Não coloque Client Secrets neste arquivo ou em qualquer código do navegador.
  */
-
+window.PACMAN_GOOGLE_CLIENT_ID = "sodium-diode-514715-i4.apps.googleusercontent.com";
